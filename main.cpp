@@ -28,6 +28,24 @@ using namespace std;
 
 int main()
 {
-    cout << "Hello world!" << endl;
+    ifstream dat_file("File_record.dat", ios::binary);
+
+    if(dat_file.is_open())
+    {
+        dat_file.seekg(0, ios::end);
+        int fileSize = dat_file.tellg();
+        dat_file.seekg(0, ios::beg);
+
+        vector<char> dat_data(fileSize, 0);
+
+        dat_file.read(dat_data.data(), fileSize);
+
+        FileRecrodHeaderFormat* frhf = reinterpret_cast<FileRecrodHeaderFormat*>(&dat_data[0]);
+
+        cout << "Text string: " << hex << int(frhf->TextString) << endl;
+        cout << "Offset of the first attribute: " << hex << int(frhf->OffsetOfTheFirstAttribute) << endl;
+        cout << "File entry number: " << hex << int(frhf->FileEntryNumber) << endl;
+    }
+
     return 0;
 }
