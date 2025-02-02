@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <locale>
+#include <windows.h>
 #include <string>
 #include <cstdint>
 
@@ -115,6 +117,26 @@ int main()
                 wstring name (FileName, FileNameLength);
 
                 wcout << L"File name: " << name << endl;
+            }
+
+            if (ahf->AttributeType == 0x80)
+            {
+                uint16_t OffsetOfAttributeContent = offset + ahf->OffsetOfAttributeContent;
+
+                uint32_t SizeOfAttributeContentInBytes = ahf->SizeOfAttributeContentInBytes;
+
+                const char* FileData = reinterpret_cast<const char*>(&dat_data[OffsetOfAttributeContent]);
+
+                string utf8 (FileData, SizeOfAttributeContentInBytes);
+
+                vector<wchar_t> utf16 (SizeOfAttributeContentInBytes);
+
+                MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), SizeOfAttributeContentInBytes, utf16.data(), utf16.size());
+
+                wstring data(utf16.begin(), utf16.end());
+
+                wcout << L"File data: " << data << endl;
+
             }
 
             offset += ahf->AttributeLength;
