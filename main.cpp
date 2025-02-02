@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <cstdint>
 
 using namespace std;
@@ -39,10 +40,27 @@ struct AttributeHeaderFormat
     uint8_t Filling;
 };
 
+struct FormatAttributeDataArea
+{
+    uint64_t FileLink;
+    uint64_t FileCreationTime;
+    uint64_t TimeLastFileChange;
+    uint64_t TimeLastFileRecordChange;
+    uint64_t TimeLastFileAccess;
+    uint64_t DedicatedFileSize;
+    uint64_t RealFileSize;
+    uint64_t Flags;
+    uint8_t FileNameLength;
+    uint8_t FileNameSpaceCodeFlags;
+    uint16_t FileName[];
+};
+
 #pragma pack(pop)
 
 int main()
 {
+    setlocale(LC_ALL, "Russian");
+
     ifstream dat_file("File_record.dat", ios::binary);
 
     if(dat_file.is_open())
@@ -70,6 +88,7 @@ int main()
             if (ahf->AttributeType != 0xFFFFFFFF)
             {
                 cout << "Attribute name: ";
+
                 switch (ahf->AttributeType)
                 {
                 case 0x10: cout << "$STANDART_INFORMATION" << endl; break;
@@ -83,7 +102,19 @@ int main()
                 case 0xB0: cout << "$BITMAP" << endl; break;
                 case 0x100: cout << "$LOGGED_UTILITY_STREAM" << endl; break;
                 }
-                cout << "Attribute type: "<< hex << ahf->AttributeType << endl;
+
+                cout << "Attribute type: 0x"<< hex << ahf->AttributeType << endl;
+            }
+
+            if (ahf->AttributeType == 0x30)
+            {
+                uint8_t FileNameLength = dat_data[offset + 0x58];
+
+                const wchar_t* FileName = reinterpret_cast<const wchar_t*>(&dat_data[offset + 0x5A]);
+
+                wstring name (FileName, FileNameLength);
+
+                wcout << L"File name: " << name << endl;
             }
 
             offset += ahf->AttributeLength;
